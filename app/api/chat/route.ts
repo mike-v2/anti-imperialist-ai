@@ -35,10 +35,12 @@ interface PineconeHit {
   fields: Article;
 }
 
+interface PineconeSearchResult {
+  hits?: PineconeHit[];
+}
+
 interface PineconeSearchResponse {
-  result?: {
-    hits?: PineconeHit[];
-  };
+  result?: PineconeSearchResult;
 }
 
 const deepseek = createOpenAI({
@@ -134,7 +136,7 @@ EXAMPLE JSON OUTPUT:
 
   console.log("Pinecone filter:", JSON.stringify(pineconeFilter, null, 2));
 
-  const searchResponse: PineconeSearchResponse = await namespace.searchRecords({
+  const searchResponse = await namespace.searchRecords({
     query: {
       topK: 15,
       inputs: { text: contextualQuery },
@@ -144,9 +146,9 @@ EXAMPLE JSON OUTPUT:
   });
 
   const sources: Article[] =
-    (searchResponse.result?.hits
+    (searchResponse as PineconeSearchResponse)?.result?.hits
       ?.map((hit: PineconeHit) => ({ ...hit.fields, id: hit._id, score: hit._score }))
-      .filter((item: Article | undefined): item is Article => !!item)) ?? [];
+      .filter((item: Article | undefined): item is Article => !!item) ?? [];
 
   const publicationDisplayNameMap = new Map(
     publications.map((p) => [p.dbName, p.displayName])
