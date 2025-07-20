@@ -14,7 +14,7 @@ export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
       >
         <Menu className="h-6 w-6" />
       </Button>
-      <h1 className="text-xl font-semibold">Oracle</h1>
+      <h1 className="text-xl font-semibold">Anti-Imperialist AI</h1>
     </div>
   );
 } 
