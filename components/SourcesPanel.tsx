@@ -182,58 +182,84 @@ export function SourcesPanel({
         </div>
         <div className="px-4 mb-4 space-y-2">
           <h4 className="font-semibold text-sm mb-2">Date Range</h4>
-          <Popover>
-            <PopoverTrigger asChild>
+          <div className="relative">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !filters.dateRange?.from && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filters.dateRange?.from ? (
+                    format(filters.dateRange.from, "LLL dd, y")
+                  ) : (
+                    <span>Start date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  captionLayout="dropdown"
+                  selected={filters.dateRange?.from}
+                  defaultMonth={filters.dateRange?.from}
+                  onSelect={handleStartDateChange}
+                />
+              </PopoverContent>
+            </Popover>
+            {filters.dateRange?.from && (
               <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !filters.dateRange?.from && "text-muted-foreground"
-                )}
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                onClick={() => handleStartDateChange(undefined)}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {filters.dateRange?.from ? (
-                  format(filters.dateRange.from, "LLL dd, y")
-                ) : (
-                  <span>Start date</span>
-                )}
+                <X className="h-4 w-4" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={filters.dateRange?.from}
-                onSelect={handleStartDateChange}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          <Popover>
-            <PopoverTrigger asChild>
+            )}
+          </div>
+          <div className="relative">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !filters.dateRange?.to && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {filters.dateRange?.to ? (
+                    format(filters.dateRange.to, "LLL dd, y")
+                  ) : (
+                    <span>End date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  captionLayout="dropdown"
+                  selected={filters.dateRange?.to}
+                  defaultMonth={filters.dateRange?.to}
+                  onSelect={handleEndDateChange}
+                />
+              </PopoverContent>
+            </Popover>
+            {filters.dateRange?.to && (
               <Button
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !filters.dateRange?.to && "text-muted-foreground"
-                )}
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                onClick={() => handleEndDateChange(undefined)}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {filters.dateRange?.to ? (
-                  format(filters.dateRange.to, "LLL dd, y")
-                ) : (
-                  <span>End date</span>
-                )}
+                <X className="h-4 w-4" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={filters.dateRange?.to}
-                onSelect={handleEndDateChange}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+            )}
+          </div>
         </div>
         <div>
           <h4 className="font-semibold text-sm mb-2 px-4">Publications</h4>
