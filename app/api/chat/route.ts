@@ -1,10 +1,11 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText, type CoreMessage, generateText } from "ai";
 import { format } from "date-fns";
-import pinecone from "@/lib/pinecone";
-import type { Article } from "@/types";
-import { publications } from "@/lib/constants";
 import { DateRange } from "react-day-picker";
+
+import pinecone from "@/lib/pinecone";
+import { publications } from "@/lib/constants";
+import type { Article } from "@/types";
 
 export const maxDuration = 60;
 
@@ -16,7 +17,7 @@ interface RequestFilters {
 
 interface PineconeFilter {
   publication?: string;
-  publication_date?: {
+  publication_date_numeric?: {
     $gte?: number;
     $lte?: number;
   };
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
     useReasoningModel,
   }: {
     messages: CoreMessage[];
-      filters: RequestFilters;
+    filters: RequestFilters;
     useReasoningModel?: boolean;
   } = await req.json();
 
@@ -103,35 +104,38 @@ EXAMPLE JSON OUTPUT:
 
   const latestMessage = messages[messages.length - 1];
 
-  let pineconeFilter: PineconeFilter = {};
+  const filterClauses: PineconeFilter[] = [];
+
   if (filters.publications?.length) {
     if (filters.publications.length === 1) {
-      pineconeFilter.publication = filters.publications[0];
+      filterClauses.push({ publication: filters.publications[0] });
     } else {
-      pineconeFilter = {
+      filterClauses.push({
         $or: filters.publications.map((pub: string) => ({
           publication: pub,
         })),
-      };
+      });
     }
   }
 
-  const dateFilter: DateFilter = {};
-  if (filters.dateRange?.from) {
-    dateFilter["$gte"] = new Date(filters.dateRange.from).getTime() / 1000;
-  }
-  if (filters.dateRange?.to) {
-    dateFilter["$lte"] = new Date(filters.dateRange.to).getTime() / 1000;
+  if (filters.dateRange) {
+    const dateFilter: DateFilter = {};
+    if (filters.dateRange.from) {
+      dateFilter["$gte"] = new Date(filters.dateRange.from).getTime() / 1000;
+    }
+    if (filters.dateRange.to) {
+      dateFilter["$lte"] = new Date(filters.dateRange.to).getTime() / 1000;
+    }
+    if (Object.keys(dateFilter).length > 0) {
+      filterClauses.push({ publication_date_numeric: dateFilter });
+    }
   }
 
-  if (Object.keys(dateFilter).length > 0) {
-    if (pineconeFilter.$or) {
-      pineconeFilter = {
-        $and: [pineconeFilter, { publication_date: dateFilter }],
-      };
-    } else {
-      pineconeFilter.publication_date = dateFilter;
-    }
+  let pineconeFilter: PineconeFilter = {};
+  if (filterClauses.length > 1) {
+    pineconeFilter = { $and: filterClauses };
+  } else if (filterClauses.length === 1) {
+    pineconeFilter = filterClauses[0];
   }
 
   console.log("Pinecone filter:", JSON.stringify(pineconeFilter, null, 2));
@@ -147,7 +151,11 @@ EXAMPLE JSON OUTPUT:
 
   const sources: Article[] =
     (searchResponse as PineconeSearchResponse)?.result?.hits
-      ?.map((hit: PineconeHit) => ({ ...hit.fields, id: hit._id, score: hit._score }))
+      ?.map((hit: PineconeHit) => ({
+        ...hit.fields,
+        id: hit._id,
+        score: hit._score,
+      }))
       .filter((item: Article | undefined): item is Article => !!item) ?? [];
 
   const publicationDisplayNameMap = new Map(

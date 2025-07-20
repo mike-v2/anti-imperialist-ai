@@ -88,8 +88,16 @@ export function SourcesPanel({
     onFilterChange({ sort });
   };
 
-  const handleDateChange = (dateRange?: DateRange) => {
-    onFilterChange({ dateRange });
+  const handleStartDateChange = (date?: Date) => {
+    onFilterChange({
+      dateRange: { from: date, to: filters.dateRange?.to },
+    });
+  };
+
+  const handleEndDateChange = (date?: Date) => {
+    onFilterChange({
+      dateRange: { from: filters.dateRange?.from, to: date },
+    });
   };
 
   const handlePublicationChange = (pub: string, checked: boolean) => {
@@ -172,36 +180,56 @@ export function SourcesPanel({
             </Button>
           </div>
         </div>
-        <div className="px-4 mb-4">
+        <div className="px-4 mb-4 space-y-2">
+          <h4 className="font-semibold text-sm mb-2">Date Range</h4>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
                 className={cn(
                   "w-full justify-start text-left font-normal",
-                  !filters.dateRange && "text-muted-foreground"
+                  !filters.dateRange?.from && "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {filters.dateRange?.from ? (
-                  filters.dateRange.to ? (
-                    <>
-                      {format(filters.dateRange.from, "LLL dd, y")} -{" "}
-                      {format(filters.dateRange.to, "LLL dd, y")}
-                    </>
-                  ) : (
-                    format(filters.dateRange.from, "LLL dd, y")
-                  )
+                  format(filters.dateRange.from, "LLL dd, y")
                 ) : (
-                  <span>Pick a date range</span>
+                  <span>Start date</span>
                 )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
               <Calendar
-                mode="range"
-                selected={filters.dateRange}
-                onSelect={handleDateChange}
+                mode="single"
+                selected={filters.dateRange?.from}
+                onSelect={handleStartDateChange}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-full justify-start text-left font-normal",
+                  !filters.dateRange?.to && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {filters.dateRange?.to ? (
+                  format(filters.dateRange.to, "LLL dd, y")
+                ) : (
+                  <span>End date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={filters.dateRange?.to}
+                onSelect={handleEndDateChange}
                 initialFocus
               />
             </PopoverContent>
